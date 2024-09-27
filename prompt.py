@@ -1,4 +1,5 @@
-from poe_api_wrapper import PoeApi
+from poe_api_wrapper import PoeApi, AsyncPoeApi
+import asyncio
 import json
 
 class Chat:
@@ -7,11 +8,26 @@ class Chat:
         'p-lat': 'HQ15CSgnFxi7TzDY%2Bhbi0GXDJky6FFag1AkFP5bvCw%3D%3D',
     }
 
-    chat_code = "3l4bv0fjv14ryhzrk1a"
+    chat_code = "3lzvuof9za1nx4xoad7"
     bot = "KenObjectIdentifier"
     client = PoeApi(tokens=tokens)
-    
-    def Send(self, message):
-        for chunk in self.client.send_message(bot=self.bot, message=message, chatCode=self.chat_code):
-            pass
-        return chunk["text"]
+
+    def send(self, message):
+        try:
+            response = None
+            for chunk in self.client.send_message(bot=self.bot, message=message, chatCode=self.chat_code):
+                response = chunk
+            
+            if response and "text" in response:
+                return response["text"]
+            else:
+                return "No response received or invalid format."
+        
+        except Exception as e:
+            return f"An error occurred: {str(e)}"
+
+# Example usage
+if __name__ == "__main__":
+    chat = Chat()
+    response = chat.send("Hello, how are you?")
+    print(response)

@@ -1,0 +1,29 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+env/
+venv/
+ENV/
+.venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Python egg files
+*.egg
+*.egg-info/
+
+# Cached files
+*.pyo
+
+# IDE-specific files
+*.idea/
+*.vscode/
+
+# Other potential files to ignore
+*.DS_Store
