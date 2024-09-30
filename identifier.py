@@ -1,8 +1,9 @@
 import cv2
-import base64
 import numpy as np
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile
 from pydantic import BaseModel
+from io import BytesIO
+from PIL import Image
 
 app = FastAPI()
 
@@ -15,40 +16,28 @@ class DetectionResult(BaseModel):
 class App:
     trained_Haar_Cascade_dateset = "stop_data.xml"
 
-    def initiate_by_base64(self, base64_string):
-        # Decode the base64 string
-        img_data = base64.b64decode(base64_string) # need to rotate the image
-        np_arr = np.frombuffer(img_data, np.uint8)
-        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    def initiate_by_image(self, image: Image.Image):
+        # Convert the PIL image to a NumPy array and then to BGR format
+        img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        
+        # Resize the image by 3 times
+        original_size = img.shape[:2]  # Get the original height and width
+        new_size = (original_size[1] * 3, original_size[0] * 3)  # (width, height)
+        print(new_size)
+        img_resized = cv2.resize(img, new_size)
+        image.save("output_image.jpg", format="JPEG")
 
-        if img is None:
-            print("Failed to decode image")
-            return DetectionResult()
+        # Convert the resized image to grayscale
+        image_grey = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
 
-        # Get original dimensions
-        original_height, original_width = img.shape[:2]
-
-        # Resize the image to be 8 times larger
-        img = cv2.resize(img, (original_width * 8, original_height * 8), interpolation=cv2.INTER_LINEAR)
-
-        # Convert to grayscale
-        image_grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # Load the Haar Cascade
+        # Load the Haar cascade classifier
         stop_data = cv2.CascadeClassifier(self.trained_Haar_Cascade_dateset)
+
+        # Detect objects in the grayscale image
         found = stop_data.detectMultiScale(image_grey, minSize=(20, 20))
 
-        if len(found) > 0:
-            for (x, y, width, height) in found:
-                # Scale back to original dimensions
-                return DetectionResult(
-                    x=int(x / 8), 
-                    y=int(y / 8), 
-                    width=int(width), 
-                    height=int(height)
-                )
-        
-        return DetectionResult()
+        return found
+    
+    def by_image(self, image: Image.Image):
+        return self.initiate_by_image(image)
 
-    def by_base64(self, base64_string):
-        return self.initiate_by_base64(base64_string)

@@ -13,6 +13,7 @@ from io import BytesIO
 from prompt import Chat
 from identifier import App
 from data import Fishes
+import time
 
 app = FastAPI()
 
@@ -85,61 +86,35 @@ class Base64Item(BaseModel):
 @app.post("/receiveFrame")
 def frame(item: Base64Item):
     res = []
+    
+    print(f"terminated: ${item.terminated}")
     if item.terminated:
         return res
 
-    # base64_string = item.data
-   
-    # if base64_string.startswith("data:image/jpeg;base64,"):
-    #     base64_string = base64_string.split(",")[1]
+    base64_string = item.data
 
-    # # Decode the Base64 string
-    # image_data = base64.b64decode(base64_string)
-    # image = Image.open(BytesIO(image_data))
-    
-    # rotated_image = image.rotate(-90, expand=True)
+    if base64_string.startswith("data:image/jpeg;base64,"):
+        base64_string = base64_string.split(",")[1]
 
-    # # rotated_image.save("output_image.jpg", format="JPEG")
+    # Decode the Base64 string
+    image_data = base64.b64decode(base64_string)
+    image = Image.open(BytesIO(image_data))    
 
-    # width, height = rotated_image.size
+    # Rotate the image
+    rotated_image = image.rotate(-90, expand=True)
 
-    # res = App().by_base64(base64_string) # should be returned in an array.
-    
-    # print(res)
+    # Process the rotated image for detection
+    detection_results = App().initiate_by_image(rotated_image)
+    for (x, y, width, height) in detection_results:
+        res.append({
+            "x": int(y),
+            "y": int(x),
+            "width": int(width),
+            "height": int(height),
+            "object": Fishes().get_random_target(),
+            "confident": round(random.uniform(0.55, 0.9), 2)
+        })
 
-    # return {
-    #     'x': res.x, # X axis of target identified
-    #     'y': res.y, # Y axis of target identified
-    #     'width': res.width, # size of the target identified
-    #     'height': res.height, # size of the target identified
-    #     'object': {
-    #         'title': 'Clown Fish', # title of the target identified
-    #         # description of the target found
-    #         'description': 'The clownfish can be many different colours, depending on its species, including yellow, orange, red, and black. Most have white details. They are smaller fish, with the smallest around 7 to 8cm long and the longest 17cm long'
-    #     },
-    #     'confident': 0.76 # accuracy score for found target
-    # }
-
-    count = random.randint(1, 3)
-    size = random.randint(55, 120)
-    for _ in range(1, count):
-        obj = {
-            'x': random.randint(10, 300),
-            'y': random.randint(10, 250),
-            'width': size,
-            'height': size,
-            'object': Fishes().get_random_target(),
-            'confident': round(random.uniform(0.55, 0.9), 2)
-        }
-        res.append(obj)
-    
-
-    if item.target is not None:
-        if item.target.name:
-            print("Target: " + item.target.name)
-            name = item.target.name.capitalize()
-            res = [target for target in res if target["object"]["title"] == name]
-    print(res)
     return res
 
 # uvicorn app:app --host 192.168.0.188 --port 8000 --reload
