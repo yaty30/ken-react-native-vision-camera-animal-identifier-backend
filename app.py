@@ -1,19 +1,22 @@
 from typing import Union, Optional
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from PIL import Image, ImageDraw
 import json
 import io
+from inference.models.utils import get_roboflow_model
 from typing import List, Any
 import base64
 import random
 from io import BytesIO
 from prompt import Chat
+import os
 from identifier import App
 from data import Fishes
 import time
+from customDetection import Detect
 
 app = FastAPI()
 
@@ -27,9 +30,26 @@ app.add_middleware(
 )
 import random
 
-@app.get("/")
+@app.get("/download")
+async def download_file():
+    file_path = "/Users/jamesyip/Desktop/Codes/VisionCamera_V2/react-native-vision-camera-animal-identifier/android/app/build/outputs/apk/release/app-release.apk"  # Replace with your file path
+    return FileResponse(file_path, media_type='application/octet-stream', filename="camera.apk")
+
+
+@app.get("/user")
 def read_root():
     return {"Hello": "World"}
+
+class Base64Item(BaseModel):
+    data: str
+    target: int
+    terminated: bool
+
+@app.post("/postData")
+def frame(item: Base64Item):
+    print(item)
+    data = "123"
+    return data
 
 class TalkItem(BaseModel):
     id: int
@@ -85,10 +105,14 @@ class Base64Item(BaseModel):
 
 @app.post("/receiveFrame")
 def frame(item: Base64Item):
+    start = time.time()
+    time_count = 0
     res = []
     
     print(f"terminated: ${item.terminated}")
     if item.terminated:
+        end = time.time()
+        print(round(end-start, 2))
         return res
 
     base64_string = item.data
@@ -104,17 +128,38 @@ def frame(item: Base64Item):
     rotated_image = image.rotate(-90, expand=True)
 
     # Process the rotated image for detection
-    detection_results = App().initiate_by_image(rotated_image)
-    for (x, y, width, height) in detection_results:
-        res.append({
-            "x": int(y),
-            "y": int(x),
-            "width": int(width),
-            "height": int(height),
-            "object": Fishes().get_random_target(),
-            "confident": round(random.uniform(0.55, 0.9), 2)
-        })
+    # detection_results = App().initiate_by_image(rotated_image)
+    # for (x, y, width, height) in detection_results:
+    #     res.append({
+    #         "id": random.randint(100000, 9999999),
+    #         "x": int(y),
+    #         "y": int(x),
+    #         "width": int(width),
+    #         "height": int(height),
+    #         "object": Fishes().get_random_target(),
+    #         "confident": round(random.uniform(0.55, 0.9), 2)
+    #     })
+    
+    # Ken's version
+    detection_results = Detect().main(base64_string)
+    print(detection_results)
 
+    end = time.time()
+    print(round(end-start, 2))
     return res
 
 # uvicorn app:app --host 192.168.0.188 --port 8000 --reload
+
+if __name__ == "__main__":
+    
+    # Inference image to find faces
+    # model_name = "animal-detection-jvsw5"
+    # model_version = "1"
+    # model = get_roboflow_model(
+    #     model_id="{}/{}".format(model_name, model_version),
+    #     #Replace ROBOFLOW_API_KEY with your Roboflow API Key
+    #     api_key="dYvAmlyG8pw3rxfRuzOs"
+    # )
+    # Detect().model = model
+    
+    os.system("uvicorn app:app --host 192.168.0.188 --port 8000 --reload")

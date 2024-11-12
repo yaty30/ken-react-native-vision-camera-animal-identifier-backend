@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from io import BytesIO
 from PIL import Image
 
-app = FastAPI()
 
 class DetectionResult(BaseModel):
     x: int = None
@@ -14,18 +13,18 @@ class DetectionResult(BaseModel):
     height: int = None
 
 class App:
-    trained_Haar_Cascade_dateset = "stop_data.xml"
+    trained_Haar_Cascade_dateset = "haarcascade_frontalcatface.xml" #"stop_data.xml"
 
     def initiate_by_image(self, image: Image.Image):
         # Convert the PIL image to a NumPy array and then to BGR format
         img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         
+        ratio = 4
         # Resize the image by 3 times
         original_size = img.shape[:2]  # Get the original height and width
-        new_size = (original_size[1] * 3, original_size[0] * 3)  # (width, height)
-        print(new_size)
+        new_size = (original_size[1] * ratio, original_size[0] * ratio)  # (width, height)
         img_resized = cv2.resize(img, new_size)
-        image.save("output_image.jpg", format="JPEG")
+        # image.save("output_image.jpg", format="JPEG")
 
         # Convert the resized image to grayscale
         image_grey = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
@@ -40,4 +39,3 @@ class App:
     
     def by_image(self, image: Image.Image):
         return self.initiate_by_image(image)
-
