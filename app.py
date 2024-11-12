@@ -121,11 +121,11 @@ def frame(item: Base64Item):
         base64_string = base64_string.split(",")[1]
 
     # Decode the Base64 string
-    image_data = base64.b64decode(base64_string)
-    image = Image.open(BytesIO(image_data))    
+    # image_data = base64.b64decode(base64_string)
+    # image = Image.open(BytesIO(image_data))    
 
-    # Rotate the image
-    rotated_image = image.rotate(-90, expand=True)
+    # # Rotate the image
+    # rotated_image = image.rotate(-90, expand=True)
 
     # Process the rotated image for detection
     # detection_results = App().initiate_by_image(rotated_image)
