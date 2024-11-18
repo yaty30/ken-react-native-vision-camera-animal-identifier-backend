@@ -1,4 +1,4 @@
-from poe_api_wrapper import PoeApi, AsyncPoeApi
+from poe_api_wrapper import PoeApi
 import asyncio
 import json
 
@@ -10,7 +10,7 @@ class Chat:
 
     chat_code = "3lzvuof9za1nx4xoad7"
     bot = "KenObjectIdentifier"
-    client = PoeApi(tokens=tokens)
+    client = PoeApi("Kvhj2VuR9aRlrKqxNQfz_g%3D%3D")
 
     def send(self, message):
         try:

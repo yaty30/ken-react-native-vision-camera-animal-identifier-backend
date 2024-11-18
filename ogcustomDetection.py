@@ -56,22 +56,12 @@ async def main(item):
     if results[0].predictions:
         
         prediction = results[0].predictions[0]
-
         
         x_center = int(prediction.x)
         y_center = int(prediction.y)
         width = int(prediction.width)
         height = int(prediction.height)
 
-        # Calculate bounding box
-        # x0 = x_center - width // 2
-        # y0 = y_center - height // 2
-        # x1 = x_center + width // 2
-        # y1 = y_center + height // 2
-
-        # # Annotate image (optional)
-        # # cv2.rectangle(frame, (x0, y0), (x1, y1), (255, 255, 0), 10)
-        # # cv2.putText(frame, "Face", (x0, y0 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"Time taken: {elapsed_time:.2f} second")

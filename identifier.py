@@ -13,7 +13,7 @@ class DetectionResult(BaseModel):
     height: int = None
 
 class App:
-    trained_Haar_Cascade_dateset = "haarcascade_frontalcatface.xml" #"stop_data.xml"
+    trained_Haar_Cascade_dateset = "tiger.xml" #"stop_data.xml"
 
     def initiate_by_image(self, image: Image.Image):
         # Convert the PIL image to a NumPy array and then to BGR format

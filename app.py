@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from PIL import Image, ImageDraw
 import json
+import numpy as np
 import io
 from inference.models.utils import get_roboflow_model
 from typing import List, Any
@@ -16,7 +17,9 @@ import os
 from identifier import App
 from data import Fishes
 import time
-from customDetection import Detect
+# from customDetection import Detect
+from detect import detection
+from yolo import run
 
 app = FastAPI()
 
@@ -120,29 +123,15 @@ def frame(item: Base64Item):
     if base64_string.startswith("data:image/jpeg;base64,"):
         base64_string = base64_string.split(",")[1]
 
-    # Decode the Base64 string
-    # image_data = base64.b64decode(base64_string)
-    # image = Image.open(BytesIO(image_data))    
+    # Decode the base64 string
+    image_data = base64.b64decode(base64_string)
+    image = Image.open(BytesIO(image_data))
+    width, height = image.size
 
-    # # Rotate the image
-    # rotated_image = image.rotate(-90, expand=True)
+    # Convert image to numpy array
+    image_np = np.array(image,)
 
-    # Process the rotated image for detection
-    # detection_results = App().initiate_by_image(rotated_image)
-    # for (x, y, width, height) in detection_results:
-    #     res.append({
-    #         "id": random.randint(100000, 9999999),
-    #         "x": int(y),
-    #         "y": int(x),
-    #         "width": int(width),
-    #         "height": int(height),
-    #         "object": Fishes().get_random_target(),
-    #         "confident": round(random.uniform(0.55, 0.9), 2)
-    #     })
-    
-    # Ken's version
-    detection_results = Detect().main(base64_string)
-    print(detection_results)
+    res = run(image_np, (height, width))
 
     end = time.time()
     print(round(end-start, 2))
@@ -162,4 +151,4 @@ if __name__ == "__main__":
     # )
     # Detect().model = model
     
-    os.system("uvicorn app:app --host 192.168.0.188 --port 8000 --reload")
+    os.system("uvicorn app:app --host 192.168.50.233 --port 8000 --reload")
